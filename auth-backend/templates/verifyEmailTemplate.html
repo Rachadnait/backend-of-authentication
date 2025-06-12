@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: #fff;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 32px;
+            background: #007bff;
+            color: #fff !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .footer {
+            margin-top: 32px;
+            color: #888;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Email Verification</h2>
+        <p>Hello,</p>
+        <p>Thank you for registering! Please verify your email address by clicking the button below:</p>
+        <a href="{{verificationLink}}" class="btn">Verify Email</a>
+        <p class="footer">
+            If you did not create an account, you can safely ignore this email.<br>
+            &copy; {{year}} Your Company Name
+        </p>
+    </div>
+</body>
+</html>
