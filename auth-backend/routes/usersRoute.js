@@ -20,18 +20,21 @@ const photoUpload = require("../middlewares/photoUpload");
 router.route("/profile").get(verifyTokenAndAdmin, getAllUsersCtrl);
 
 // /api/users/profile/profile-photo-upload
-router
-  .route("/profile/profile-photo-upload")
-  .post(verifyToken, photoUpload.single("image"), profilePhotoUploadCtrl);
+// router
+//   .route("/profile/profile-photo-upload")
+//   .post(verifyToken, photoUpload.single("image"), profilePhotoUploadCtrl);
 
-// /api/users/profile/:id
-router
-  .route("/profile/:id")
-  .get(validateObjectId, getUserProfileCtrl)
-  .put(validateObjectId, verifyTokenAndOnlyUser, updateUserProfileCtrl)
-  .delete(validateObjectId, verifyTokenAndAuthorization,deleteUserProfileCtrl);
+// // /api/users/profile/:id
+// router
+//   .route("/profile/:id")
+//   .get(validateObjectId, getUserProfileCtrl)
+//   .put(validateObjectId, verifyTokenAndOnlyUser, updateUserProfileCtrl)
+//   .delete(validateObjectId, verifyTokenAndAuthorization,deleteUserProfileCtrl);
 
-// /api/users/count
-router.route("/count").get(verifyTokenAndAdmin, getUsersCountCtrl);
+// // /api/users/count
+// router.route("/count").get(verifyTokenAndAdmin, getUsersCountCtrl);
+
+// mongodb user otp verification model
+// const UserOtpVerification = require("../models/UserOtpVerification");
 
 module.exports = router;

@@ -42,33 +42,47 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   });
   await user.save();
 
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
   // Creating new VerificationToken & save it toDB
   const verifictionToken = new VerificationToken({
     userId: user._id,
     token: crypto.randomBytes(32).toString("hex"),
+    otp: otp,
   });
   await verifictionToken.save();
 
 
-  // Making the link
-  const link = `${process.env.CLIENT_DOMAIN}/users/${user._id}/verify/${verifictionToken.token}`;
-
-  // Putting the link into an html template
+  // Send OTP via email
   const htmlTemplate = `
-    <div style="font-family: Arial, sans-serif; color: #333;">
-      <p>Click on the link below to verify your email</p>
-      <a href="${link}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        Verify
-      </a>
+    <div>
+      <p>Your OTP is: <strong>${otp}</strong></p>
+      <p>Please use this OTP to verify your account.</p>
     </div>`;
 
-  // Sending email to the user
-  await sendEmail(user.email, "Verify Your Email", htmlTemplate);
-
-  // Response to the client
+  await sendEmail(user.email, "Your OTP Code", htmlTemplate);
   res.status(201).json({
-    message: "We sent to you an email, please verify your email address",
+    message: "Check your email for OTP to verify your account",
+    userId: user._id,
+    token: verifictionToken.token,
+    otp: otp
   });
+
+  // // Making the link
+  // const link = `${process.env.CLIENT_DOMAIN}/users/${user._id}/verify/${verifictionToken.token}`;
+
+  // // Putting the link into an html template
+  // const htmlTemplate = `
+  //   <div style="font-family: Arial, sans-serif; color: #333;">
+  //     <p>Click on the link below to verify your email</p>
+  //     <a href="${link}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">
+  //       Verify
+  //     </a>
+  //   </div>`;
+
+  // // Sending email to the user
+  // await sendEmail(user.email, "Verify Your Email", htmlTemplate);
+
   // res.status(201).json({
   //   message: "User registered successfully, you need to login to continue",
   //   user: {
@@ -123,15 +137,17 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
       await verificationToken.save();
     }
 
-    const link = `${process.env.CLIENT_DOMAIN}/users/${user._id}/verify/${verificationToken.token}`;
+    // const link = `${process.env.CLIENT_DOMAIN}/users/${user._id}/verify/${verificationToken.token}`;
 
-    const htmlTemplate = `
-    <div>
-      <p>Click on the link below to verify your email</p>
-      <a href="${link}">Verify</a>
-    </div>`;
 
-    await sendEmail(user.email, "Verify Your Email", htmlTemplate);
+
+    // const htmlTemplate = `
+    // <div>
+    //   <p>Click on the link below to verify your email</p>
+    //   <a href="${link}">Verify</a>
+    // </div>`;
+
+    // await sendEmail(user.email, "Verify Your Email", htmlTemplate);
 
     return res.status(400).json({
       message: "We sent to you an email, please verify your email address",
@@ -176,6 +192,7 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
  ------------------------------------------------*/
 module.exports.verifyUserAccountCtrl = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.userId);
+
   if (!user) {
     return res.status(400).json({ message: "invalid link" });
   }
@@ -183,6 +200,77 @@ module.exports.verifyUserAccountCtrl = asyncHandler(async (req, res) => {
   const verificationToken = await VerificationToken.findOne({
     userId: user._id,
     token: req.params.token,
+  });
+
+  if (!verificationToken) {
+    return res.status(400).json({ message: "invalid link" });
+  }
+
+  user.isAccountVerified = true;
+  await user.save();
+
+  await verificationToken.remove();
+
+  res.status(200).json({ message: "Your account verified" });
+});
+
+
+/**-----------------------------------------------
+ * @desc    Send OTP verification email without OTP
+ * @route   /api/auth/:userId/:otp/send
+ * @method  GET
+ * @access  public
+ ------------------------------------------------*/
+
+module.exports.sendOtpVerificationEmailCtrl = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) {
+    return res.status(400).json({ message: "invalid user" });
+  }
+
+  const verificationToken = await VerificationToken.findOne({
+    userId: user._id,
+  });
+
+  if (!verificationToken) {
+    return res.status(400).json({ message: "invalid token" });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Save OTP to the verification token
+  verificationToken.otp = otp;
+  await verificationToken.save();
+
+  // Send OTP via email
+  const htmlTemplate = `
+    <div>
+      <p>Your OTP is: <strong>${otp}</strong></p>
+      <p>Please use this OTP to verify your account.</p>
+    </div>`;
+
+  await sendEmail(user.email, "Your OTP Code", htmlTemplate);
+
+  res.status(200).json({ message: "OTP sent to your email" });
+});
+
+/**-----------------------------------------------
+ * @desc    Verify OTP
+ * @route   /api/auth/:userId/verify/:token:otp
+ * @method  GET
+ * @access  public
+ ------------------------------------------------*/
+module.exports.verifyOtpUserAccountCtrl = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+
+  if (!user) {
+    return res.status(400).json({ message: "invalid link" });
+  }
+
+  const verificationToken = await VerificationToken.findOne({
+    userId: user._id,
+    token: req.params.token,
+    otp: req.params.otp,
   });
 
   if (!verificationToken) {
