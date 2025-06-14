@@ -3,16 +3,18 @@ const { registerUserCtrl, loginUserCtrl, verifyUserAccountCtrl ,verifyOtpUserAcc
 
 // /api/auth/register
 router.post("/register", registerUserCtrl);
+// vefy user account with OTP
+router.post("/verifyOTP", verifyOtpUserAccountCtrl);
 
 // /api/auth/login
 router.post("/login", loginUserCtrl);
 
-// verification without OTP
-// /api/auth/:userId/verify/:token
-router.get("/:userId/verify/:token", verifyUserAccountCtrl);
+// // verification without OTP
+// // /api/auth/:userId/verify/:token
+// router.get("/:userId/verify/:token", verifyUserAccountCtrl);
 
-// verification with OTP
-// /api/auth/:userId/:otp/verify/:token
-router.get("/:userId/otp/:token/:otp", verifyOtpUserAccountCtrl);
+// // verification with OTP
+// // /api/auth/:userId/:otp/verify/:token
+// router.get("/:userId/otp/:token/:otp", verifyOtpUserAccountCtrl);
 
-module.exports = router;
+// module.exports = router;

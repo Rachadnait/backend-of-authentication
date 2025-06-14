@@ -17,7 +17,7 @@ const UserVerificationSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 600 // Document will be removed after 10 minutes
+        expires: 60 // Document will be removed after 10 minutes
     }
 });
 

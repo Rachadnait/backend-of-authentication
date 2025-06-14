@@ -95,7 +95,42 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   //   },
   // });
 });
+/**-----------------------------------------------
+ * @desc    Verify OTP
+ * @route   /api/auth/verifyOTP
+ * @method  GET
+ * @access  public
+ ------------------------------------------------*/
+module.exports.verifyOtpUserAccountCtrl = asyncHandler(async (req, res) => {
+  // Validate OTP
+  const otpPattern = /^\d{6}$/; // 6-digit OTP pattern  
+  if (!otpPattern.test(req.body.otp)) {
+    return res.status(400).json({ message: "invalid OTP format" });
+  }
 
+  const user = await User.findById(res.body.userId);
+
+  if (!user) {
+    return res.status(400).json({ message: "Invalid user" });
+  }
+
+  const verificationToken = await VerificationToken.findOne({
+    userId: user._id,
+    token: req.body.token,
+    otp: req.body.otp,
+  });
+
+  if (!verificationToken) {
+    return res.status(400).json({ message: "invalid User" });
+  }
+
+  user.isAccountVerified = true;
+  await user.save();
+
+  await verificationToken.remove();
+
+  res.status(200).json({ message: "Your account verified" });
+});
 /**-----------------------------------------------
  * @desc    Login User
  * @route   /api/auth/login
@@ -153,18 +188,6 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
       message: "We sent to you an email, please verify your email address",
     });
 
-    // return res.status(400).json({
-    //   message: "You are login now,",
-    //   user: {
-    //     _id: user._id,
-    //     username: user.username,
-    //     lastname: user.lastname,
-    //     phonenumber: user.phonenumber,
-    //     email: user.email,
-    //   },
-    // });
-
-
   }
 
   // Generate Auth Token
@@ -216,7 +239,7 @@ module.exports.verifyUserAccountCtrl = asyncHandler(async (req, res) => {
 
 
 /**-----------------------------------------------
- * @desc    Send OTP verification email without OTP
+ * @desc    Send OTP verification email with OTP
  * @route   /api/auth/:userId/:otp/send
  * @method  GET
  * @access  public
@@ -251,36 +274,9 @@ module.exports.sendOtpVerificationEmailCtrl = asyncHandler(async (req, res) => {
 
   await sendEmail(user.email, "Your OTP Code", htmlTemplate);
 
-  res.status(200).json({ message: "OTP sent to your email" });
-});
-
-/**-----------------------------------------------
- * @desc    Verify OTP
- * @route   /api/auth/:userId/verify/:token:otp
- * @method  GET
- * @access  public
- ------------------------------------------------*/
-module.exports.verifyOtpUserAccountCtrl = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.userId);
-
-  if (!user) {
-    return res.status(400).json({ message: "invalid link" });
-  }
-
-  const verificationToken = await VerificationToken.findOne({
-    userId: user._id,
-    token: req.params.token,
-    otp: req.params.otp,
+  res.status(200).json({
+    message: "OTP sent to your email"
+    , userId: user._id, token: verificationToken.token, otp: otp
   });
-
-  if (!verificationToken) {
-    return res.status(400).json({ message: "invalid link" });
-  }
-
-  user.isAccountVerified = true;
-  await user.save();
-
-  await verificationToken.remove();
-
-  res.status(200).json({ message: "Your account verified" });
 });
+

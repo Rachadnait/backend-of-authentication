@@ -13,7 +13,6 @@ const VerificationTokenSchema = new mongoose.Schema({
     },
     otp: {
         type: String,
-        required: true
     },
 }, {
     timestamps: true,
